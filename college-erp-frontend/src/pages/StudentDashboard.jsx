@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { 
   GraduationCap, LogOut, Download, CreditCard, IdCard, 
-  CheckCircle, Clock, Bell, User, BookOpen, ShieldCheck, FileText 
+  CheckCircle, Clock, Bell, User, BookOpen, ShieldCheck, FileText, CalendarCheck 
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -13,9 +13,11 @@ const StudentDashboard = () => {
   const [student, setStudent] = useState(null);
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'idcard', 'fees'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'fees', 'idcard', 'attendance'
 
   const idCardRef = useRef(null);
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
 
   const fetchStudentData = async () => {
     setLoading(true);
@@ -24,11 +26,11 @@ const StudentDashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       // 1. Profile Data
-      const profileRes = await axios.get('http://localhost:5001/api/auth/me', { headers });
+      const profileRes = await axios.get(`${API_BASE_URL}/api/auth/me`, { headers });
       setStudent(profileRes.data);
 
       // 2. Announcements
-      const noticeRes = await axios.get('http://localhost:5001/api/auth/notices', { headers });
+      const noticeRes = await axios.get(`${API_BASE_URL}/api/auth/notices`, { headers });
       setNotices(noticeRes.data || []);
     } catch (err) {
       console.error("Error fetching student profile:", err);
@@ -59,6 +61,19 @@ const StudentDashboard = () => {
   const total = student?.totalFees || 120000;
   const paid = student?.paidFees || 0;
   const due = total - paid;
+
+  // Mock Attendance Data (Backend se connect hone par dynamic map ho jayega)
+  const attendanceData = student?.attendance || {
+    overallPercentage: 82,
+    totalClasses: 120,
+    attendedClasses: 98,
+    subjects: [
+      { name: 'Data Structures & Algorithms', attended: 32, total: 36, percentage: 88 },
+      { name: 'Database Management Systems', attended: 28, total: 34, percentage: 82 },
+      { name: 'Operating Systems', attended: 22, total: 28, percentage: 78 },
+      { name: 'Computer Networks', attended: 16, total: 22, percentage: 72 },
+    ]
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-3 sm:p-6">
@@ -94,6 +109,18 @@ const StudentDashboard = () => {
         >
           <BookOpen className="w-4 h-4" /> Dashboard Overview
         </button>
+
+        <button
+          onClick={() => setActiveTab('attendance')}
+          className={`pb-3 text-xs sm:text-sm font-semibold border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+            activeTab === 'attendance'
+              ? 'border-blue-500 text-blue-400'
+              : 'border-transparent text-slate-400 hover:text-white'
+          }`}
+        >
+          <CalendarCheck className="w-4 h-4" /> Attendance
+        </button>
+
         <button
           onClick={() => setActiveTab('fees')}
           className={`pb-3 text-xs sm:text-sm font-semibold border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
@@ -104,6 +131,7 @@ const StudentDashboard = () => {
         >
           <CreditCard className="w-4 h-4" /> Fee Ledger & Receipt
         </button>
+
         <button
           onClick={() => setActiveTab('idcard')}
           className={`pb-3 text-xs sm:text-sm font-semibold border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
@@ -183,7 +211,87 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* Tab 2: Fee Ledger */}
+      {/* Tab 2: Attendance Section */}
+      {activeTab === 'attendance' && (
+        <div className="space-y-6">
+          {/* Attendance Overview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-xs sm:text-sm">Overall Attendance</p>
+                <h3 className={`text-2xl sm:text-3xl font-bold mt-1 ${
+                  attendanceData.overallPercentage >= 75 ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {attendanceData.overallPercentage}%
+                </h3>
+              </div>
+              <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl">
+                <CheckCircle className="w-7 h-7" />
+              </div>
+            </div>
+
+            <div className="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-xs sm:text-sm">Classes Attended</p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-blue-400 mt-1">
+                  {attendanceData.attendedClasses} / {attendanceData.totalClasses}
+                </h3>
+              </div>
+              <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl">
+                <CalendarCheck className="w-7 h-7" />
+              </div>
+            </div>
+
+            <div className="bg-slate-800/60 border border-slate-700/60 p-5 rounded-2xl flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-xs sm:text-sm">Eligibility Status</p>
+                <h3 className={`text-lg sm:text-xl font-bold mt-1 ${
+                  attendanceData.overallPercentage >= 75 ? 'text-emerald-400' : 'text-amber-400'
+                }`}>
+                  {attendanceData.overallPercentage >= 75 ? 'Eligible for Exams' : 'Shortage Warning'}
+                </h3>
+              </div>
+              <div className="p-3 bg-purple-500/20 text-purple-400 rounded-xl">
+                <ShieldCheck className="w-7 h-7" />
+              </div>
+            </div>
+          </div>
+
+          {/* Subject Wise Breakdown */}
+          <div className="bg-slate-800/50 border border-slate-700/80 p-4 sm:p-6 rounded-2xl">
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-400" /> Subject-wise Attendance
+            </h2>
+
+            <div className="space-y-4">
+              {attendanceData.subjects.map((sub, index) => (
+                <div key={index} className="bg-slate-900/70 border border-slate-700/60 p-4 rounded-xl">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-semibold text-white text-sm sm:text-base">{sub.name}</span>
+                    <span className={`text-xs sm:text-sm font-bold ${
+                      sub.percentage >= 75 ? 'text-emerald-400' : 'text-red-400'
+                    }`}>
+                      {sub.percentage}% ({sub.attended}/{sub.total})
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
+                    <div 
+                      className={`h-2.5 rounded-full transition-all duration-500 ${
+                        sub.percentage >= 75 ? 'bg-emerald-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${sub.percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: Fee Ledger */}
       {activeTab === 'fees' && (
         <div className="bg-slate-800/50 border border-slate-700/80 p-4 sm:p-6 rounded-2xl">
           <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -209,10 +317,9 @@ const StudentDashboard = () => {
         </div>
       )}
 
-      {/* Tab 3: Digital ID Card */}
+      {/* Tab 4: Digital ID Card */}
       {activeTab === 'idcard' && (
         <div className="flex flex-col items-center justify-center space-y-6">
-          {/* Printable Canvas Element */}
           <div
             ref={idCardRef}
             className="w-full max-w-xs bg-slate-900 border-2 border-blue-500/50 rounded-2xl p-6 shadow-2xl relative overflow-hidden text-center"
