@@ -1,0 +1,44 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "College ERP",
+  "collectionId": "42e2b5bb-3955-44b0-82c8-43b7a72fa438",
+  "dateExported": "2026-10-16T00:00:00.000Z",
+  "version": "1.2",
+  "folders": [],
+  "requests": [
+    {
+      "_id": "91f20c77-d8ed-4d7c-aeb4-674a64083240",
+      "colId": "42e2b5bb-3955-44b0-82c8-43b7a72fa438",
+      "containerId": "",
+      "name": "Backend health",
+      "url": "http://localhost:5000/",
+      "method": "GET",
+      "sortNum": 10000,
+      "created": "2026-10-16T00:00:00.000Z",
+      "modified": "2026-10-16T00:00:00.000Z",
+      "headers": []
+    },
+    {
+      "_id": "b7361790-af44-4efc-89b0-8efdd6ea134e",
+      "colId": "42e2b5bb-3955-44b0-82c8-43b7a72fa438",
+      "containerId": "",
+      "name": "Register user",
+      "url": "http://localhost:5000/api/auth/register",
+      "method": "POST",
+      "sortNum": 20000,
+      "created": "2026-10-16T00:00:00.000Z",
+      "modified": "2026-10-16T00:00:00.000Z",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Test Student\",\n  \"email\": \"change-me@example.com\",\n  \"role\": \"student\",\n  \"department\": \"Computer Science\",\n  \"semester\": \"1\",\n  \"rollNo\": \"CHANGE-ME-001\"\n}",
+        "form": []
+      }
+    }
+  ]
+}
